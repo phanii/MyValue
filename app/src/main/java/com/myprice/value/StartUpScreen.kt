@@ -20,6 +20,6 @@ class StartUpScreen : AppCompatActivity() {
 
     private fun goToMain(s: String? = null) {
         finish()
-        startActivity(Intent(this, MainActivity::class.java))
+        startActivity(Intent(this, VerificationActivity::class.java))
     }
 }
