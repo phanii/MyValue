@@ -1,6 +1,7 @@
 package com.myprice.value
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
@@ -29,7 +30,15 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         toolbar.setupWithNavController(navigationController, appBarConfiguration)
         //setupActionBarWithNavController(this, navigationController)
+
         setupNavigationMenu(navigationController)
+
+
+    }
+
+    private fun profileNavigation(view: View?) {
+
+        view?.findNavController()?.navigate(R.id.nav_profileimage)
     }
 
     override fun onSupportNavigateUp(): Boolean {
