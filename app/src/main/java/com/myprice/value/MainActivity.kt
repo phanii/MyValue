@@ -16,10 +16,12 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
     lateinit var navigationController: NavController
+    private val REQUEST_PERMISSIONS_REQUEST_CODE = 34
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         navigationController = findNavController(R.id.nav_host_fragment)
         findViewById<NavigationView>(R.id.navigationView)
             .setupWithNavController(navigationController)

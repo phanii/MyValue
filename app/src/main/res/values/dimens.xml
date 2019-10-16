@@ -13,4 +13,10 @@
     <dimen name="icon_bottom_margin">24dp</dimen>
     <dimen name="title_bottom_margin">16dp</dimen>
     <dimen name="field_width_standard">160dp</dimen>
+    <dimen name="dim16sp">16sp</dimen>
+    <dimen name="dim14sp">16sp</dimen>
+    <dimen name="dim20sp">20sp</dimen>
+    <dimen name="dim4dp">4dp</dimen>
+    <dimen name="dim34dp">34dp</dimen>
+    <dimen name="dim8dp">8dp</dimen>
 </resources>

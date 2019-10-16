@@ -13,7 +13,6 @@ import kotlinx.android.synthetic.main.progressbar.*
  * A simple [Fragment] subclass.
  */
 class Progressbar : Fragment() {
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -22,11 +21,7 @@ class Progressbar : Fragment() {
     }
 
     fun setVisibilityForProgressBar(visibility: Boolean) {
-        when (visibility) {
-            true -> progressBar.visibility = View.VISIBLE
-            false -> progressBar.visibility = View.GONE
-
-        }
+        progressBarCommon.visibility = View.GONE
 
     }
 

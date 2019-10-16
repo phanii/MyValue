@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="10dp"
+    android:orientation="vertical">
+
+
+    <RelativeLayout
+        android:id="@+id/producttyperel"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/background_white_edittext"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Spinner
+            android:id="@+id/new_req_product_spinner"
+            style="@style/MySpinnerLook"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dim34dp"
+            android:layout_alignParentEnd="true"
+            android:singleLine="true"
+            android:spinnerMode="dropdown"
+            tools:ignore="HardcodedText" />
+
+    </RelativeLayout>
+
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:padding="@dimen/dim4dp"
+        android:text="@string/quantity"
+        android:textSize="@dimen/dim20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/producttyperel" />
+
+    <EditText
+        android:id="@+id/new_req_quantity"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/background_white_edittext"
+        android:ems="10"
+        android:hint="@string/enter_quantity"
+        android:inputType="numberDecimal"
+
+        android:padding="@dimen/dim4dp"
+        android:textSize="@dimen/dim16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:padding="@dimen/dim4dp"
+        android:text="@string/expecting_price"
+        android:textSize="@dimen/dim20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/new_req_quantity" />
+
+    <RadioGroup
+        android:id="@+id/new_req_price_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView6">
+
+
+        <RadioButton
+            android:id="@+id/new_req_marketprice_radiobtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:padding="@dimen/dim4dp"
+            android:text="@string/market_price"
+            android:textSize="@dimen/dim16sp"
+            app:layout_constraintBaseline_toBaselineOf="@+id/new_req_myprice_radio" />
+
+        <RadioButton
+            android:id="@+id/new_req_myprice_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:padding="@dimen/dim4dp"
+            android:text="@string/my_price"
+            android:textSize="@dimen/dim16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.54"
+            app:layout_constraintTop_toBottomOf="@+id/textView6" />
+    </RadioGroup>
+
+
+    <EditText
+        android:id="@+id/new_req_myprice_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/background_white_edittext"
+        android:ems="10"
+        android:hint="@string/my_price"
+        android:inputType="textPersonName"
+        android:padding="@dimen/dim4dp"
+        android:textSize="@dimen/dim16sp"
+        android:visibility="gone"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/new_req_price_radio_group" />
+
+    <Button
+        android:id="@+id/new_req_locateme_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:padding="@dimen/dim4dp"
+        android:text="@string/locate_me"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/new_req_myprice_value" />
+
+    <TextView
+        android:id="@+id/new_req_location_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:padding="@dimen/dim4dp"
+        android:text="@string/my_current_location"
+        app:layout_constraintBaseline_toBaselineOf="@+id/new_req_locateme_btn"
+        app:layout_constraintEnd_toStartOf="@+id/new_req_locateme_btn"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

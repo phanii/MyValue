@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelProviders
 import com.google.firebase.firestore.FirebaseFirestore
 import com.myprice.value.R
 import com.myprice.value.ui.home.ProfileViewModel
-import com.myprice.value.utils.enableViews
+import com.myprice.value.utils.clearTheViews
 import com.myprice.value.utils.showSnack
 import kotlinx.android.synthetic.main.profile_home.*
 
@@ -48,7 +48,7 @@ class ProfileViewFragment : Fragment() {
                     .add(user)
                     .addOnSuccessListener {
                         showSnack(profilerootlayout, "Data Saved Successfully!!")
-                        enableViews(profile_name, profile_phone)
+                        clearTheViews(profile_name, profile_phone)
                         progressBar.visibility = View.GONE
                     }
                     .addOnFailureListener {

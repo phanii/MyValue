@@ -83,4 +83,8 @@
         <item name="android:progressBackgroundTint">@color/colorPrimaryDark</item>
     </style>
 
+    <style name="MySpinnerLook" parent="@android:style/Widget.TextView.SpinnerItem">
+        <item name="android:textSize">@dimen/dim14sp</item>
+        <item name="android:backgroundTint">@color/black</item>
+    </style>
 </resources>

@@ -1,10 +1,10 @@
-package com.myprice.value.ui.slideshow
+package com.myprice.value.ui.myrequests
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class SlideshowViewModel : ViewModel() {
+class MyRequestsViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is slideshow Fragment"

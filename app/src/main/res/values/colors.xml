@@ -5,8 +5,10 @@
     <color name="colorPrimary">#039BE5</color>
     <color name="colorPrimaryDark">#0288D1</color>
     <color name="colorAccent">#FFA000</color>
-
+    <color name="colorEditTextBackground">#F4F5F7</color>
+    <color name="colorEditTextBackgroundBorder">#ABB2B9</color>
     <color name="grey_100">#F5F5F5</color>
     <color name="grey_300">#E0E0E0</color>
     <color name="grey_500">#9E9E9E</color>
+    <color name="black">#000000</color>
 </resources>
