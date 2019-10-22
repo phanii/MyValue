@@ -6,21 +6,33 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
 import com.myprice.value.R
+import com.myprice.value.SharedViewModel
 import com.myprice.value.ui.myrequests.adapter.MyRequestsAdapter
 import com.myprice.value.ui.myrequests.model.ProductBean
+import com.myprice.value.utils.showLog
 import com.myprice.value.utils.showSnack
 import kotlinx.android.synthetic.main.fragment_myrequests.*
 
 class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener {
+    override fun onEditClick(position: Int) {
+        requireActivity().showLog(Gson().toJson(productsList[position]))
+        sharedViewModel.setProductHere(productsList[position])
+        view?.findNavController()?.navigate(R.id.nav_request)
+    }
+
     override fun onDeleteClick(position: Int, id: String?) {
         requireActivity().runOnUiThread {
             db.collection("products").document(id.toString()).delete()
                 .addOnSuccessListener {
                     showSnack(ll, "Deleted")
+                    productsList.removeAt(position)
                     reqAdapter?.notifyItemRemoved(position)
+
                 }
                 .addOnFailureListener { showSnack(ll, "Not deleted") }
         }
@@ -28,18 +40,22 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
 
     lateinit var db: FirebaseFirestore
     private lateinit var productsList: ArrayList<ProductBean>
-    private lateinit var myRequestsViewModel: MyRequestsViewModel
+    private lateinit var sharedViewModel: SharedViewModel
     private var reqAdapter: MyRequestsAdapter? = null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        myRequestsViewModel =
-            ViewModelProviders.of(this).get(MyRequestsViewModel::class.java)
         return inflater.inflate(R.layout.fragment_myrequests, container, false)
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedViewModel = activity?.run {
+            ViewModelProviders.of(this)[SharedViewModel::class.java]
+        } ?: throw Exception("Invalid Activity")
+    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)

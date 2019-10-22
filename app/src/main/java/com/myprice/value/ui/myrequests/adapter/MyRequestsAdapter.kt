@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.myprice.value.R
 import com.myprice.value.ui.myrequests.model.ProductBean
+import com.myprice.value.utils.toCurrency
 import kotlinx.android.synthetic.main.myrequests_row.view.*
 
 /**
@@ -48,12 +49,21 @@ class MyRequestsAdapter constructor(context: Context) :
 
         fun bindView(product: ProductBean) {
             itemView.myreqs_product_name.text = product.name
-            itemView.myreqs_product_price.text = product.requestedPrice
-            itemView.myreqs_product_quantity.text = product.quantity
+            itemView.myreqs_product_price.text = if (product.requestedPrice.equals(
+                    "MarketValuePrice",
+                    true
+                )
+            ) "MarketValuePrice" else product.requestedPrice?.toDouble()?.toCurrency
+            itemView.myreqs_product_quantity.text = "Qty ${product.quantity}"
             itemView.myreqs_product_location.text = product.location
             itemView.ic_delete.setOnClickListener {
                 itemView.swipeLayout.close(true)
                 sClickListener?.onDeleteClick(adapterPosition, product.id)
+            }
+            itemView.ic_edit.setOnClickListener {
+                itemView.swipeLayout.close(true)
+                sClickListener?.onEditClick(position = adapterPosition)
+
             }
         }
     }
@@ -65,5 +75,6 @@ class MyRequestsAdapter constructor(context: Context) :
 
     internal interface UpdateDataClickListener {
         fun onDeleteClick(position: Int, id: String?)
+        fun onEditClick(position: Int)
     }
 }

@@ -21,10 +21,15 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.google.android.gms.location.*
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
 import com.myprice.value.R
+import com.myprice.value.SharedViewModel
+import com.myprice.value.ui.myrequests.model.ProductBean
 import com.myprice.value.utils.*
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
 import kotlinx.android.synthetic.main.fragement_request.*
@@ -41,6 +46,8 @@ class NewRequestFragment : Fragment() {
     private var mLastLocation: Location? = null
     private var mResultReceiver: AddressResultReceiver? = null
     lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private lateinit var sharedViewModel: SharedViewModel
+    private lateinit var documentId: String
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,18 +56,26 @@ class NewRequestFragment : Fragment() {
         return inflater.inflate(R.layout.fragement_request, container, false)
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedViewModel = activity?.run {
+            ViewModelProviders.of(this)[SharedViewModel::class.java]
+        } ?: throw Exception("Invalid Activity")
+    }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         db = FirebaseFirestore.getInstance()
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         mResultReceiver = AddressResultReceiver(Handler())
-        ArrayAdapter.createFromResource(
+        val arrayadapter = ArrayAdapter.createFromResource(
             requireContext(),
             R.array.producttypes, R.layout.spinner_textview
-        ).also { adapter ->
-            adapter.setDropDownViewResource(R.layout.spinner_textview)
-            new_req_product_spinner.adapter = adapter
-        }
+        )
+        //.also { adapter ->
+        arrayadapter.setDropDownViewResource(R.layout.spinner_textview)
+        new_req_product_spinner.adapter = arrayadapter
+        //}
         //new_req_product_spinner.prompt = "Choose"
         new_req_product_spinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -101,6 +116,8 @@ class NewRequestFragment : Fragment() {
         }
 
         new_req_send_request_btn.setOnClickListener {
+
+
             new_req_quantity.validator()
                 .nonEmpty()
                 .atleastOneNumber()
@@ -131,32 +148,82 @@ class NewRequestFragment : Fragment() {
 
                 customPrice =
                     if (new_req_myprice_value.isVisible) new_req_myprice_value.text.toString() else "MarketValuePrice"
+
                 val product = hashMapOf(
                     "name" to requestedProduct,
                     "quantity" to new_req_quantity.text.toString(),
                     "requestedPrice" to customPrice,
                     "location" to new_req_location_value.text.toString()
                 )
-                db.collection("products")
-                    .add(product)
-                    .addOnSuccessListener {
-                        showSnack(frg_requ_root_layout, "Data Saved Successfully!!")
-                        clearTheViews(new_req_quantity, new_req_myprice_value)
+                if (new_req_send_request_btn.text == getString(R.string.update)) {
+                    val updatedRef = db.collection("products").document(documentId)
+                    updatedRef.update(
+                        mapOf(
+                            "name" to requestedProduct,
+                            "quantity" to new_req_quantity.text.toString(),
+                            "requestedPrice" to customPrice,
+                            "location" to new_req_location_value.text.toString()
+                        )
+                    )
+                        .addOnSuccessListener {
+                            showSnack(
+                                frg_requ_root_layout,
+                                "DocumentSnapshot successfully updated!"
+                            )
+                            progressBar.visibility = View.GONE
+                            view?.findNavController()?.navigate(R.id.nav_home)
+                        }
+                        .addOnFailureListener { e ->
+                            showSnack(
+                                frg_requ_root_layout,
+                                "Error updating document"
+                            )
+                            progressBar.visibility = View.GONE
+                        }
+                } else {
 
-                        progressBar.visibility = View.GONE
-                        view?.findNavController()?.navigate(R.id.nav_home)
 
-                    }
-                    .addOnFailureListener {
-                        showSnack(frg_requ_root_layout, "Data was not saved!!")
-                        progressBar.visibility = View.GONE
-                    }
+                    db.collection("products")
+                        .add(product)
+                        .addOnSuccessListener {
+                            showSnack(frg_requ_root_layout, "Data Saved Successfully!!")
+                            clearTheViews(new_req_quantity, new_req_myprice_value)
+
+                            progressBar.visibility = View.GONE
+                            view?.findNavController()?.navigate(R.id.nav_home)
+
+                        }
+                        .addOnFailureListener {
+                            showSnack(frg_requ_root_layout, "Data was not saved!!")
+                            progressBar.visibility = View.GONE
+                        }
+                }
             }
         }
 
         new_req_locateme_btn.setOnClickListener {
             getLastLocation()
         }
+
+        sharedViewModel.getProductToHere().observe(this, Observer {
+            requireActivity().showLog("Product bean observed here ${Gson().toJson(it)}")
+            val productStr = Gson().toJson(it)
+            val productBean = Gson().fromJson(productStr, ProductBean::class.java)
+            /**
+             * set the adapter value
+             */
+            new_req_product_spinner.setSelection(arrayadapter.getPosition(productBean.name))
+            new_req_location_value.text = productBean.location
+            if (productBean.requestedPrice.equals("MarketValuePrice", true)) {
+                new_req_marketprice_radiobtn.isChecked = true
+            } else {
+                new_req_myprice_radio.isChecked = true
+                new_req_myprice_value.setText(productBean.requestedPrice)
+            }
+            new_req_quantity.setText(productBean.quantity)
+            new_req_send_request_btn.text = getString(R.string.update)
+            documentId = productBean.id.toString()
+        })
     }
 
     /**
