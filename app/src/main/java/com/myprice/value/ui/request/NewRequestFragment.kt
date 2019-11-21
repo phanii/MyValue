@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.google.android.gms.location.*
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.gson.Gson
 import com.myprice.value.R
 import com.myprice.value.SharedViewModel
@@ -48,6 +49,7 @@ class NewRequestFragment : Fragment() {
     lateinit var mFusedLocationClient: FusedLocationProviderClient
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var documentId: String
+    private lateinit var geoPoint: GeoPoint
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,7 +67,6 @@ class NewRequestFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         db = FirebaseFirestore.getInstance()
-
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         mResultReceiver = AddressResultReceiver(Handler())
         val arrayadapter = ArrayAdapter.createFromResource(
@@ -144,7 +145,8 @@ class NewRequestFragment : Fragment() {
             }
 
             if (formFilled) {
-                progressBar.visibility = View.VISIBLE
+                commonProgressBarLayout.visibility = View.VISIBLE
+
 
                 customPrice =
                     if (new_req_myprice_value.isVisible) new_req_myprice_value.text.toString() else "MarketValuePrice"
@@ -153,7 +155,8 @@ class NewRequestFragment : Fragment() {
                     "name" to requestedProduct,
                     "quantity" to new_req_quantity.text.toString(),
                     "requestedPrice" to customPrice,
-                    "location" to new_req_location_value.text.toString()
+                    "location" to new_req_location_value.text.toString(),
+                    "loct" to geoPoint
                 )
                 if (new_req_send_request_btn.text == getString(R.string.update)) {
                     val updatedRef = db.collection("products").document(documentId)
@@ -162,15 +165,19 @@ class NewRequestFragment : Fragment() {
                             "name" to requestedProduct,
                             "quantity" to new_req_quantity.text.toString(),
                             "requestedPrice" to customPrice,
-                            "location" to new_req_location_value.text.toString()
+                            "location" to new_req_location_value.text.toString(),
+                            "loct" to geoPoint
                         )
                     )
                         .addOnSuccessListener {
                             showSnack(
                                 frg_requ_root_layout,
                                 "DocumentSnapshot successfully updated!"
+
                             )
-                            progressBar.visibility = View.GONE
+                            clearTheViews(new_req_quantity, new_req_myprice_value)
+                            commonProgressBarLayout.visibility = View.GONE
+
                             view?.findNavController()?.navigate(R.id.nav_home)
                         }
                         .addOnFailureListener { e ->
@@ -178,24 +185,23 @@ class NewRequestFragment : Fragment() {
                                 frg_requ_root_layout,
                                 "Error updating document"
                             )
-                            progressBar.visibility = View.GONE
+                            commonProgressBarLayout.visibility = View.GONE
                         }
                 } else {
-
-
                     db.collection("products")
                         .add(product)
                         .addOnSuccessListener {
                             showSnack(frg_requ_root_layout, "Data Saved Successfully!!")
                             clearTheViews(new_req_quantity, new_req_myprice_value)
+                            saveToUserProducts(db, it.id)
 
-                            progressBar.visibility = View.GONE
+                            commonProgressBarLayout.visibility = View.GONE
                             view?.findNavController()?.navigate(R.id.nav_home)
 
                         }
                         .addOnFailureListener {
                             showSnack(frg_requ_root_layout, "Data was not saved!!")
-                            progressBar.visibility = View.GONE
+                            commonProgressBarLayout.visibility = View.GONE
                         }
                 }
             }
@@ -224,6 +230,20 @@ class NewRequestFragment : Fragment() {
             new_req_send_request_btn.text = getString(R.string.update)
             documentId = productBean.id.toString()
         })
+    }
+
+    private fun saveToUserProducts(db: FirebaseFirestore, id: String) {
+
+        db.collection("UsersProducts").add(
+            hashMapOf(
+                "ProductId" to id,
+                "userPhonenumber" to "123"
+            )
+        ).addOnSuccessListener {
+            showToast(requireContext(), "success")
+        }.addOnFailureListener {
+            showSnack(frg_requ_root_layout, it.localizedMessage)
+        }
     }
 
     /**
@@ -261,9 +281,10 @@ class NewRequestFragment : Fragment() {
     private fun getLastLocation() {
         if (checkPermissions()) {
             if (isLocationEnabled()) {
+                commonProgressBarLayout.visibility = View.VISIBLE
 
                 mFusedLocationClient.lastLocation.addOnCompleteListener(requireActivity()) { task ->
-                    var location: Location? = task.result
+                    val location: Location? = task.result
                     if (location == null) {
                         requestNewLocationData()
                     } else {
@@ -272,6 +293,8 @@ class NewRequestFragment : Fragment() {
                         val lon = location.longitude
                         val d = "$lat and $lon"
                         mLastLocation = location
+                        geoPoint = GeoPoint(lat, lon)
+                        commonProgressBarLayout.visibility = View.GONE
 
                     }
                 }
@@ -308,6 +331,7 @@ class NewRequestFragment : Fragment() {
             val lon = mLastLocation1.longitude
             val d = "$lat and $lon"
             mLastLocation = mLastLocation1
+            geoPoint = GeoPoint(lat, lon)
             println("current location is $d")
             startIntentService()
         }

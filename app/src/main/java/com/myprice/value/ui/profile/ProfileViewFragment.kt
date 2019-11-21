@@ -1,6 +1,7 @@
 package com.myprice.value.ui.profile
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,8 +35,20 @@ class ProfileViewFragment : Fragment() {
 
         val db = FirebaseFirestore.getInstance()
 
-
+        db.collection("Users")
+            .whereEqualTo("PhoneNumber", "1234")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    Log.d("PhoneNumber", "${document.id} => ${document.data}")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.w("PhoneNumber", "Error getting documents: ", exception)
+            }
         profile_save_button.setOnClickListener {
+
+
             profilename = profile_name.text.toString()
             phonenumber = profile_phone.text.toString()
             if (profilename.isNotEmpty() && phonenumber.isNotEmpty()) {
