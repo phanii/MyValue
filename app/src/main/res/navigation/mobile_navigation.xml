@@ -45,4 +45,15 @@
         android:name="com.myprice.value.ui.profile.ProfileViewFragment"
         android:label="@string/profile"
         tools:layout="@layout/profile_home" />
+    <fragment
+        android:id="@+id/nav_chatScreen"
+        android:name="com.myprice.value.ui.chat.ChatScreen"
+        android:label="Quote for : {productname}"
+        tools:layout="@layout/fragment_chat_screen">
+        <argument
+            android:name="productname"
+            app:argType="string"
+            app:nullable="false" />
+    </fragment>
+
 </navigation>

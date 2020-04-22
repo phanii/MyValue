@@ -50,6 +50,9 @@ class NewRequestFragment : Fragment() {
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var documentId: String
     private lateinit var geoPoint: GeoPoint
+
+    var myStoredLat = 0.0
+    var myStoredLng = 0.0
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -63,6 +66,13 @@ class NewRequestFragment : Fragment() {
         sharedViewModel = activity?.run {
             ViewModelProviders.of(this)[SharedViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
+        sharedViewModel.getLastLocationHere_lat().observe(this, Observer {
+            myStoredLat = it
+        })
+        sharedViewModel.getLastLocationHere_lng().observe(this, Observer {
+            myStoredLng = it
+        })
+
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -208,7 +218,20 @@ class NewRequestFragment : Fragment() {
         }
 
         new_req_locateme_btn.setOnClickListener {
-            getLastLocation()
+            try {
+                if (myStoredLat != 0.0 && myStoredLng != 0.0) {
+                    geoPoint = GeoPoint(myStoredLat, myStoredLng)
+                    val location = Location("")
+                    location.latitude = myStoredLat
+                    location.longitude = myStoredLng
+                    mLastLocation = location
+                    startIntentService()
+
+                } else
+                    getLastLocation()
+            } catch (e: Exception) {
+                getLastLocation()
+            }
         }
 
         sharedViewModel.getProductToHere().observe(this, Observer {
@@ -237,7 +260,8 @@ class NewRequestFragment : Fragment() {
         db.collection("UsersProducts").add(
             hashMapOf(
                 "ProductId" to id,
-                "userPhonenumber" to "123"
+                "userPhonenumber" to "123",
+                "requestStatus" to false
             )
         ).addOnSuccessListener {
             showToast(requireContext(), "success")
@@ -373,10 +397,9 @@ class NewRequestFragment : Fragment() {
             // Show a toast message if an address was found.
             if (resultCode == Constants.SUCCESS_RESULT) {
                 new_req_location_value.text = mAddressOutput
-                showToast(requireContext(), "address_found")
                 new_req_locateme_btn.isEnabled = false
             } else {
-                new_req_location_value.text = "Try"
+                new_req_location_value.text = "Try again.."
             }
         }
     }

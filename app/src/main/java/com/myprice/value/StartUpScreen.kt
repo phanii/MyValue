@@ -11,15 +11,17 @@ class StartUpScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start_up_screen)
         img_seller.setOnClickListener {
-            goToMain("I am a Seller")
+            goToMain(getString(R.string.seller))
         }
         img_buyer.setOnClickListener {
-            goToMain("I am a Buyer")
+            goToMain(getString(R.string.buyer))
         }
     }
 
     private fun goToMain(s: String? = null) {
-        finish()
+        if (s?.equals(getString(R.string.seller), ignoreCase = true)!!)
+
+            finish()
         // startActivity(Intent(this, VerificationActivity::class.java))
         startActivity(Intent(this, MainActivity::class.java))
     }

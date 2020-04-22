@@ -4,10 +4,12 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.recyclerview.widget.RecyclerView
 import com.myprice.value.R
 import com.myprice.value.ui.myrequests.model.ProductBean
 import com.myprice.value.utils.toCurrency
+import kotlinx.android.synthetic.main.list_row.view.*
 import kotlinx.android.synthetic.main.myrequests_row.view.*
 
 /**
@@ -56,6 +58,11 @@ class MyRequestsAdapter constructor(context: Context) :
             ) "MarketValuePrice" else product.requestedPrice?.toDouble()?.toCurrency
             itemView.myreqs_product_quantity.text = "Qty ${product.quantity}"
             itemView.myreqs_product_location.text = product.location
+            itemView.btn_accept.text =
+                if (!product.requestStatus!!)
+                    itemView.context.getString(R.string.accept)
+                else
+                    itemView.context.getString(R.string.reject)
             itemView.ic_delete.setOnClickListener {
                 itemView.swipeLayout.close(true)
                 sClickListener?.onDeleteClick(adapterPosition, product.id)
@@ -64,6 +71,16 @@ class MyRequestsAdapter constructor(context: Context) :
                 itemView.swipeLayout.close(true)
                 sClickListener?.onEditClick(position = adapterPosition)
 
+            }
+            itemView.btn_accept.setOnClickListener {
+                sClickListener?.onAcceptOrRejectClicked(
+                    position = adapterPosition, btn = it as Button,
+                    id = product.id
+                )
+
+            }
+            itemView.btn_chat.setOnClickListener {
+                sClickListener?.goToChatScreen(product)
             }
         }
     }
@@ -76,5 +93,8 @@ class MyRequestsAdapter constructor(context: Context) :
     internal interface UpdateDataClickListener {
         fun onDeleteClick(position: Int, id: String?)
         fun onEditClick(position: Int)
+        fun onAcceptOrRejectClicked(position: Int, btn: Button, id: String?)
+        fun goToChatScreen(product: ProductBean)
+
     }
 }

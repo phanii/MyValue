@@ -48,6 +48,11 @@
     <string name="tryagain">Try Again!!</string>
     <string name="new_request">New Request</string>
     <string name="update">Update</string>
+    <string name="accept">Accept</string>
+    <string name="chat">Chat</string>
+    <string name="reject">Reject</string>
+    <string name="seller">I am a Seller</string>
+    <string name="buyer">I am a Buyer</string>
 
 
     <string-array name="producttypes">

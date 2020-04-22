@@ -1,9 +1,11 @@
 package com.myprice.value.ui.myrequests
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
@@ -17,6 +19,7 @@ import com.myprice.value.ui.myrequests.adapter.MyRequestsAdapter
 import com.myprice.value.ui.myrequests.model.ProductBean
 import com.myprice.value.utils.showLog
 import com.myprice.value.utils.showSnack
+import com.myprice.value.utils.showToast
 import kotlinx.android.synthetic.main.fragment_myrequests.*
 import kotlin.math.acos
 import kotlin.math.cos
@@ -29,6 +32,44 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
         sharedViewModel.setProductHere(productsList[position])
         view?.findNavController()?.navigate(R.id.nav_request)
     }
+
+    override fun onAcceptOrRejectClicked(position: Int, button: Button, id: String?) {
+        reqAdapter?.notifyDataSetChanged()
+        requireActivity().runOnUiThread {
+            showToast(requireContext(), "id is $id")
+            val updatedRef = db.collection("products").document(id.toString())
+            updatedRef.update(
+                mapOf(
+                    "ProductId" to id,
+                    "userPhonenumber" to "123",
+                    "requestStatus" to (button.text == getString(R.string.accept))
+                )
+            )
+                .addOnSuccessListener {
+                    if (button.text == getString(R.string.accept)) {
+                        button.text = getString(R.string.reject)
+                    } else
+                        button.text = getString(R.string.accept)
+                }
+                .addOnFailureListener { showSnack(ll, "Try again") }
+        }
+    }
+
+    override fun goToChatScreen(product: ProductBean) {
+        try {
+            val bundle = Bundle()
+            bundle.putString(
+                "productname",
+                if (product.name.toString()
+                        .isNotEmpty() || product.name != null
+                ) product.name.toString() else "Product"
+            )
+            bundle.putParcelable("product", product)
+            view?.findNavController()?.navigate(R.id.nav_chatScreen, bundle)
+        } catch (e: Exception) {
+        }
+    }
+
 
     override fun onDeleteClick(position: Int, id: String?) {
         requireActivity().runOnUiThread {
@@ -75,20 +116,31 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
         }
         reqAdapter!!.setOnItemClickListener(this)
         commonProgressBarLayout.visibility = View.VISIBLE
-        db.collection("products")
+        db.collection("UsersProducts")
             .get()
             .addOnSuccessListener { result ->
                 for (document in result) {
-                    productsList.add(
-                        ProductBean(
-                            document.id,
-                            document["location"] as String?,
-                            document.get("name") as String?,
-                            document.get("quantity") as String?,
-                            document.get("requestedPrice") as String?
-                        )
-                    )
-
+                    try {
+                        try {
+                            val productId = document["ProductId"] as String?
+                            val requestStatus = document["requestStatus"] as Boolean?
+                            val d = db.collection("products").document(productId.toString()).get()
+                            d.result
+                            productsList.add(
+                                ProductBean(
+                                    d.result?.id,
+                                    d.result?.getString("location"),
+                                    d.result?.getString("name"),
+                                    d.result?.getString("quantity"),
+                                    d.result?.getString("requestedPrice"),
+                                    requestStatus
+                                )
+                            )
+                        } catch (e: Exception) {
+                            requireActivity().showLog(e.message!!, e)
+                        }
+                    } catch (e: Exception) {
+                    }
                 }
                 reqAdapter!!.setData(productsList)
 
@@ -99,8 +151,8 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
             }
 
         //getTheLocationsBasedOnTheRadius(20.0)
-        getDocumentsNearByMe(17.486740, 78.313745, 5.0)
-
+        //getDocumentsNearByMe(17.486740, 78.313745, 5.0)
+        myRequestedProductsList("1231")
     }
 
     fun getTheLocationsBasedOnTheRadius(distance: Double) {
@@ -120,12 +172,21 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
 
                 val d = 3959 * acos(
                     cos(
-                        Math.toRadians((17.414478)) * cos(Math.toRadians(document.get("latitude").toString().toDouble()))
+                        Math.toRadians((17.414478)) * cos(
+                            Math.toRadians(
+                                document.get("latitude").toString().toDouble()
+                            )
+                        )
                                 * cos(
                             Math.toRadians(
-                                (document.get("longitude").toString().toDouble()) - Math.toRadians((78.466646)) + sin(
+                                (document.get("longitude").toString()
+                                    .toDouble()) - Math.toRadians((78.466646)) + sin(
                                     Math.toRadians((17.414478))
-                                            * sin(Math.toRadians((document.get("latitude").toString().toDouble())))
+                                            * sin(
+                                        Math.toRadians(
+                                            (document.get("latitude").toString().toDouble())
+                                        )
+                                    )
                                 )
                             )
                         )
@@ -157,9 +218,29 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
         productsRef.whereGreaterThanOrEqualTo("loct", lesserGeopoint)
             .whereLessThanOrEqualTo("loct", greaterGeopoint).get().addOnSuccessListener {
 
-            val d = it.documents
-            d
-        }
+                val d = it.documents
+                productsList.let { oldlLstExists ->
+                    oldlLstExists.clear()
+                }
+                for (document in d) {
+                    productsList.add(
+                        ProductBean(
+                            document.id,
+                            document["location"] as String?,
+                            document.get("name") as String?,
+                            document.get("quantity") as String?,
+                            document.get("requestedPrice") as String?,
+                            document.get("requestStatus") as Boolean
+                        )
+                    )
+
+                }
+
+                reqAdapter!!.setData(productsList)
+
+
+                commonProgressBarLayout.visibility = View.GONE
+            }
 
         /*.on("value", function (snapshot) {
             console.log("objects: " + snapshot.numChildren());
@@ -175,5 +256,23 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
 
         }*/
 
+    }
+
+    fun myRequestedProductsList(userId: String) {
+
+        db.collection("UsersProducts")
+            .whereEqualTo("userPhonenumber", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                for (document in result) {
+                    Log.d("single", document.get("ProductId").toString())
+                }
+
+            }
+            .addOnFailureListener {
+                val d = it.localizedMessage
+                d
+                Log.d("single- Exception", it.message)
+            }
     }
 }
