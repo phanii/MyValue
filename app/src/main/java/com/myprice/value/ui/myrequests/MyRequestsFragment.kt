@@ -19,8 +19,9 @@ import com.myprice.value.ui.myrequests.adapter.MyRequestsAdapter
 import com.myprice.value.ui.myrequests.model.ProductBean
 import com.myprice.value.utils.showLog
 import com.myprice.value.utils.showSnack
-import com.myprice.value.utils.showToast
 import kotlinx.android.synthetic.main.fragment_myrequests.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import kotlin.math.acos
 import kotlin.math.cos
 import kotlin.math.sin
@@ -34,9 +35,8 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
     }
 
     override fun onAcceptOrRejectClicked(position: Int, button: Button, id: String?) {
-        reqAdapter?.notifyDataSetChanged()
         requireActivity().runOnUiThread {
-            showToast(requireContext(), "id is $id")
+            requireActivity().showLog("id is $id")
             val updatedRef = db.collection("products").document(id.toString())
             updatedRef.update(
                 mapOf(
@@ -48,12 +48,20 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
                 .addOnSuccessListener {
                     if (button.text == getString(R.string.accept)) {
                         button.text = getString(R.string.reject)
-                    } else
+                        reqAdapter?.changeReqStatus(position, flag = true)
+                    } else {
                         button.text = getString(R.string.accept)
+                        reqAdapter?.changeReqStatus(position, flag = false)
+                    }
+
                 }
                 .addOnFailureListener { showSnack(ll, "Try again") }
         }
     }
+
+    /**
+     * Open Chat window to finalize the price...
+     */
 
     override fun goToChatScreen(product: ProductBean) {
         try {
@@ -88,6 +96,7 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
     private lateinit var productsList: ArrayList<ProductBean>
     private lateinit var sharedViewModel: SharedViewModel
     private var reqAdapter: MyRequestsAdapter? = null
+    private lateinit var productIdList: ArrayList<String>
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -107,6 +116,8 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
         super.onActivityCreated(savedInstanceState)
         db = FirebaseFirestore.getInstance()
         productsList = arrayListOf()
+        productsList.clear()
+        productIdList = arrayListOf()
         reqAdapter = MyRequestsAdapter(requireActivity())
         myrequs_rcv.apply {
             hasFixedSize()
@@ -119,32 +130,33 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
         db.collection("UsersProducts")
             .get()
             .addOnSuccessListener { result ->
+                productsList.let {
+                    it.clear()
+                }
                 for (document in result) {
                     try {
                         try {
                             val productId = document["ProductId"] as String?
+                            println("product LIst size  product id is $productId")
+                            if (productId != null) {
+                                productIdList.add(productId)
+                            }
+
                             val requestStatus = document["requestStatus"] as Boolean?
-                            val d = db.collection("products").document(productId.toString()).get()
-                            d.result
-                            productsList.add(
-                                ProductBean(
-                                    d.result?.id,
-                                    d.result?.getString("location"),
-                                    d.result?.getString("name"),
-                                    d.result?.getString("quantity"),
-                                    d.result?.getString("requestedPrice"),
-                                    requestStatus
-                                )
-                            )
+                            // doAsync {
+
+                            // }
                         } catch (e: Exception) {
                             requireActivity().showLog(e.message!!, e)
                         }
                     } catch (e: Exception) {
+                        requireActivity().showLog("Error ${e.message}", e)
                     }
                 }
-                reqAdapter!!.setData(productsList)
+                // reqAdapter!!.setData(productsList)
+                println("product LIst size  productIdList is ${Gson().toJson(productIdList)}")
+                populateProductList(productIdList)
 
-                commonProgressBarLayout.visibility = View.GONE
             }
             .addOnFailureListener { exception ->
                 println("Error getting documents: $exception")
@@ -152,7 +164,58 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
 
         //getTheLocationsBasedOnTheRadius(20.0)
         //getDocumentsNearByMe(17.486740, 78.313745, 5.0)
-        myRequestedProductsList("1231")
+        //myRequestedProductsList("1231")
+    }
+
+    private fun populateProductList(productIdList: java.util.ArrayList<String>) {
+
+        // doAsync {
+        // Thread().run {
+        doAsync {
+            for (pid in 0..productIdList.size.minus(1)) {
+                val d = db.collection("products").document(productIdList[pid]).get()
+                    .addOnSuccessListener {
+                        val product = ProductBean(
+                            it.id,
+                            it.get("location") as String?,
+                            it.get("name") as String?,
+                            it.get("quantity") as String?,
+                            it.get("requestedPrice") as String?,
+                            it.get("requestStatus") as Boolean?
+                        )
+                        println(
+                            "product LIst size Location " + it.get("location") + " id  " + it.id + "Product is " + Gson().toJson(
+                                product
+                            )
+                        )
+
+                        productsList.add(product)
+                        reqAdapter!!.notifyDataSetChanged()
+                    }.addOnFailureListener {
+                        println("product LIst size Failure " + it.message)
+                    }
+            }
+            uiThread {
+
+                reqAdapter!!.setData(productsList)
+                commonProgressBarLayout.visibility = View.GONE
+
+            }
+        }
+
+        //}
+/*
+            uiThread {
+
+                reqAdapter!!.setData(productsList)
+                commonProgressBarLayout.visibility = View.GONE
+            }
+        }*/
+        println("product LIst size  productIdList is Here  ${Gson().toJson(productsList)}")
+
+        /*reqAdapter!!.setData(productsList)
+        commonProgressBarLayout.visibility = View.GONE
+*/
     }
 
     fun getTheLocationsBasedOnTheRadius(distance: Double) {
@@ -242,19 +305,6 @@ class MyRequestsFragment : Fragment(), MyRequestsAdapter.UpdateDataClickListener
                 commonProgressBarLayout.visibility = View.GONE
             }
 
-        /*.on("value", function (snapshot) {
-            console.log("objects: " + snapshot.numChildren());
-            snapshot.forEach(function(childSnapshot) {
-                console.log(childSnapshot.key);
-            });
-        });*/
-        /*query.get().addOnSuccessListener {
-            Log.d("LOCATION ", Gson().toJson(it))
-            val d=it
-            val e= d.documents
-            e
-
-        }*/
 
     }
 

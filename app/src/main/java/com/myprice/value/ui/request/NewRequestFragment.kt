@@ -74,6 +74,7 @@ class NewRequestFragment : Fragment() {
         })
 
     }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         db = FirebaseFirestore.getInstance()
@@ -166,7 +167,8 @@ class NewRequestFragment : Fragment() {
                     "quantity" to new_req_quantity.text.toString(),
                     "requestedPrice" to customPrice,
                     "location" to new_req_location_value.text.toString(),
-                    "loct" to geoPoint
+                    "loct" to geoPoint,
+                    "requestStatus" to false
                 )
                 if (new_req_send_request_btn.text == getString(R.string.update)) {
                     val updatedRef = db.collection("products").document(documentId)
@@ -176,7 +178,8 @@ class NewRequestFragment : Fragment() {
                             "quantity" to new_req_quantity.text.toString(),
                             "requestedPrice" to customPrice,
                             "location" to new_req_location_value.text.toString(),
-                            "loct" to geoPoint
+                            "loct" to geoPoint,
+                            "requestStatus" to false
                         )
                     )
                         .addOnSuccessListener {

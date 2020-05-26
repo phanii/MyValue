@@ -1,6 +1,7 @@
 package com.myprice.value.ui.myrequests.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,6 +40,7 @@ class MyRequestsAdapter constructor(context: Context) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val product = this.list[position]
+        Log.d("vAlues ", "adapter called2")
         holder.bindView(product)
     }
 
@@ -47,8 +49,6 @@ class MyRequestsAdapter constructor(context: Context) :
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-
         fun bindView(product: ProductBean) {
             itemView.myreqs_product_name.text = product.name
             itemView.myreqs_product_price.text = if (product.requestedPrice.equals(
@@ -58,11 +58,15 @@ class MyRequestsAdapter constructor(context: Context) :
             ) "MarketValuePrice" else product.requestedPrice?.toDouble()?.toCurrency
             itemView.myreqs_product_quantity.text = "Qty ${product.quantity}"
             itemView.myreqs_product_location.text = product.location
-            itemView.btn_accept.text =
-                if (!product.requestStatus!!)
+
+            if (product.requestStatus != null) {
+                itemView.btn_accept.text = if (!product.requestStatus!!)
                     itemView.context.getString(R.string.accept)
                 else
                     itemView.context.getString(R.string.reject)
+            }
+
+
             itemView.ic_delete.setOnClickListener {
                 itemView.swipeLayout.close(true)
                 sClickListener?.onDeleteClick(adapterPosition, product.id)
@@ -77,7 +81,6 @@ class MyRequestsAdapter constructor(context: Context) :
                     position = adapterPosition, btn = it as Button,
                     id = product.id
                 )
-
             }
             itemView.btn_chat.setOnClickListener {
                 sClickListener?.goToChatScreen(product)
@@ -85,7 +88,13 @@ class MyRequestsAdapter constructor(context: Context) :
         }
     }
 
+    fun changeReqStatus(position: Int, flag: Boolean) {
+        list[position].requestStatus = flag
+        notifyItemChanged(position)
+    }
+
     fun setData(produclist: ArrayList<ProductBean>) {
+        Log.d("vAlues ", "adapter called" + list.size)
         this.list = produclist
         notifyDataSetChanged()
     }

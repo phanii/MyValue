@@ -10,5 +10,5 @@ data class ProductBean(
     val name: String? = null,
     val quantity: String? = null,
     val requestedPrice: String? = null,
-    val requestStatus: Boolean? = null
+    var requestStatus: Boolean? = null
 ) : Parcelable

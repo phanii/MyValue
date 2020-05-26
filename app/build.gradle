@@ -11,7 +11,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.myprice.value"
-
+        flavorDimensions "default"
         minSdkVersion 23
         targetSdkVersion 28
         versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch * 100
@@ -27,7 +27,21 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        beta
+                {
+                    versionNameSuffix "-beta"
+                    applicationIdSuffix ".beta"
+
+                }
     }
+  /*  productFlavors{
+        free{
+            applicationId "com.myprice.value.free"
+        }
+        paid{
+            applicationId "com.myprice.value.paid"
+        }
+    }*/
 }
 
 dependencies {
@@ -48,6 +62,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:19.1.0'
     implementation 'com.firebaseui:firebase-ui-auth:4.3.1'
     implementation 'com.google.firebase:firebase-auth:19.1.0'
+    implementation 'org.jetbrains.anko:anko-common:0.9'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
